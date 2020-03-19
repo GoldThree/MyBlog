@@ -2,7 +2,7 @@
 package users
 
 import (
-	errors2 "MyBlog/server/views/errors"
+	e "MyBlog/server/views/errors"
 	"errors"
 	"fmt"
 
@@ -31,13 +31,13 @@ func SignUp(c *gin.Context) {
 	request := &User{}
 	err := binding.JSON.Bind(c.Request, request)
 	if err != nil {
-		c.JSON(200, errors2.MakeErrorResponse(err))
+		c.JSON(200, e.MakeErrorResponse(err))
 		return
 	}
 
 	err = request.ValidateRequestParams()
 	if err != nil {
-		c.JSON(200, errors2.MakeErrorResponse(err))
+		c.JSON(200, e.MakeErrorResponse(err))
 		return
 	}
 
