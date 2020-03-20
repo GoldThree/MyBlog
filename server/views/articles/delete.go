@@ -13,6 +13,7 @@ import (
 // DeleteArticlesRequest 请求参数
 type DeleteArticlesRequest struct {
 	Uuid string `json:"uuid"`
+	Token string `json:"token"`
 }
 
 // DeleteArticlesResponse 返回参数
@@ -36,7 +37,7 @@ func DeleteArticle(c *gin.Context) {
 		return
 	}
 
-	err = server.DeleteArticle(request.Uuid)
+	err = server.DeleteArticle(request.Uuid, request.Token)
 	if err != nil {
 		c.JSON(200, e.MakeErrorResponse(err))
 		return
@@ -51,6 +52,9 @@ func (g *DeleteArticlesRequest) ValidateRequestParams() error {
 
 	if g.Uuid == "" {
 		return errors.New("invalid_param.uuid")
+	}
+	if g.Token == "" {
+		return errors.New("invalid_param.token")
 	}
 	return nil
 }

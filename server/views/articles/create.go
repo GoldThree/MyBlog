@@ -13,6 +13,7 @@ import (
 // PostArticlesRequest 请求参数
 type PostArticlesRequest struct {
 	Title      string `json:"title"`
+	Token      string `json:"token"`
 	Content    string `json:"content"`
 	AuthorUuid string `json:"author_uuid"`
 }
@@ -38,7 +39,7 @@ func Post(c *gin.Context) {
 		return
 	}
 
-	err = server.Post(request.Title, request.Content, request.AuthorUuid)
+	err = server.Post(request.Title, request.Content, request.AuthorUuid, request.Token)
 	if err != nil {
 		c.JSON(200, e.MakeErrorResponse(err))
 		return
@@ -59,6 +60,9 @@ func (g *PostArticlesRequest) ValidateRequestParams() error {
 	}
 	if g.AuthorUuid == "" {
 		return errors.New("invalid_param.author")
+	}
+	if g.Token == "" {
+		return errors.New("invalid_param.token")
 	}
 	return nil
 }

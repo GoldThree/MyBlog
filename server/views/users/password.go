@@ -15,6 +15,7 @@ import (
 // UpdatePasswordRequest 请求参数
 type UpdatePasswordRequest struct {
 	UserUuid    string `json:"user_uuid"`
+	Token       string `json:"token"`
 	OldPassword string `json:"old_password"`
 	NewPassword string `json:"new_password"`
 }
@@ -40,7 +41,7 @@ func UpdatePassword(c *gin.Context) {
 		return
 	}
 
-	err = server.UpdatePassword(request.UserUuid, request.OldPassword, request.NewPassword)
+	err = server.UpdatePassword(request.UserUuid, request.Token, request.OldPassword, request.NewPassword)
 	if err != nil {
 		fmt.Println("出错了", err)
 		c.JSON(200, Response{Ok: false})
@@ -59,6 +60,9 @@ func (g *UpdatePasswordRequest) ValidateRequestParams() error {
 	}
 	if g.NewPassword == "" {
 		return errors.New("invalid_param.new_password")
+	}
+	if g.Token == "" {
+		return errors.New("invalid_param.token")
 	}
 	if g.UserUuid == "" {
 		return errors.New("invalid_param.user_uuid	")

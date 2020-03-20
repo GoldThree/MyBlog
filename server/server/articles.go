@@ -4,10 +4,20 @@ import (
 	"MyBlog/helper"
 	"MyBlog/server/models"
 	"MyBlog/server/repositiory"
+	"errors"
 	"time"
 )
 
-func Find(offset, limit int) ([]models.Article, error) {
+func Find(offset, limit int, uuid, token string) ([]models.Article, error) {
+
+	isTrueToken, err := checkToken(uuid, token)
+	if err != nil {
+		return nil, err
+	}
+
+	if !isTrueToken {
+		return nil, errors.New("error_token")
+	}
 
 	articles, err := repositiory.Find(offset, limit)
 	if err != nil {
@@ -16,7 +26,16 @@ func Find(offset, limit int) ([]models.Article, error) {
 	return articles, nil
 }
 
-func FindByUuid(uuid string, offset, limit int) ([]models.Article, error) {
+func FindByUuid(uuid, token string, offset, limit int) ([]models.Article, error) {
+
+	isTrueToken, err := checkToken(uuid, token)
+	if err != nil {
+		return nil, err
+	}
+
+	if !isTrueToken {
+		return nil, errors.New("error_token")
+	}
 
 	articles, err := repositiory.FindByUuid(uuid, offset, limit)
 	if err != nil {
@@ -25,7 +44,16 @@ func FindByUuid(uuid string, offset, limit int) ([]models.Article, error) {
 	return articles, nil
 }
 
-func Post(title, content, authorUuid string) error {
+func Post(title, content, authorUuid, token string) error {
+
+	isTrueToken, err := checkToken(authorUuid, token)
+	if err != nil {
+		return err
+	}
+
+	if !isTrueToken {
+		return errors.New("error_token")
+	}
 
 	timestamp := helper.TimeToTimestamp(time.Now())
 
@@ -38,14 +66,23 @@ func Post(title, content, authorUuid string) error {
 		"updated_at":  timestamp,
 	}
 
-	err := repositiory.Post(data)
+	err = repositiory.Post(data)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func GetArticle(uuid string) (models.Article, error) {
+func GetArticle(uuid, token string) (models.Article, error) {
+
+	isTrueToken, err := checkToken(uuid, token)
+	if err != nil {
+		return models.Article{}, err
+	}
+
+	if !isTrueToken {
+		return models.Article{}, errors.New("error_token")
+	}
 
 	article, err := repositiory.GetArticle(uuid)
 	if err != nil {
@@ -54,7 +91,16 @@ func GetArticle(uuid string) (models.Article, error) {
 	return article, nil
 }
 
-func DeleteArticle(uuid string) error {
+func DeleteArticle(uuid, token string) error {
+
+	isTrueToken, err := checkToken(uuid, token)
+	if err != nil {
+		return err
+	}
+
+	if !isTrueToken {
+		return errors.New("error_token")
+	}
 
 	return repositiory.DeleteArticle(uuid)
 }

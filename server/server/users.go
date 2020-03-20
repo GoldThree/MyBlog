@@ -1,10 +1,12 @@
 package server
 
 import (
+	"MyBlog/redis"
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/hex"
 	"errors"
+	"fmt"
 	"strings"
 	"time"
 
@@ -33,23 +35,53 @@ func SignUp(username, gender, phone, password string) error {
 	return repositiory.SignUp(user)
 }
 
-func Login(phone, password string) error {
+func Login(phone, password string) (string, error) {
 
 	user, err := repositiory.GetUserByPhone(phone)
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	passwordSalt := user.PasswordSalt
 	passwordHash := hashPassword(passwordSalt, password)
 	if user.PasswordHash != passwordHash {
-		return errors.New("password_is_wrong")
+		return "", errors.New("password_is_wrong")
 	}
 
-	return nil
+	token := helper.GenerateString(128)
+	tokenKey := fmt.Sprintf("%s.token", user.UUID)
+	err = redis.Client.Set(tokenKey, token, 3*time.Hour).Err()
+	if err != nil {
+		return "", err
+	}
+
+	return token, nil
 }
 
-func UpdatePassword(uuid, oldPassword, newPassword string) error {
+func Logout(uuid, token string) error {
+
+	isTrueToken, err := checkToken(uuid, token)
+	if err != nil {
+		return err
+	}
+
+	if !isTrueToken {
+		return errors.New("error_token")
+	}
+
+	return redis.Client.Del(fmt.Sprintf("%s.token", uuid)).Err()
+}
+
+func UpdatePassword(uuid,token, oldPassword, newPassword string) error {
+
+	isTrueToken, err := checkToken(uuid, token)
+	if err != nil {
+		return err
+	}
+
+	if !isTrueToken {
+		return errors.New("error_token")
+	}
 
 	user, err := repositiory.GetUserByUuid(uuid)
 	if err != nil {
@@ -75,4 +107,18 @@ func hashPassword(salt, password string) string {
 	mdStr := hex.EncodeToString(h.Sum(nil))
 
 	return strings.ToLower(mdStr)
+}
+
+// 验证token
+func checkToken(uuid, token string) (bool, error) {
+
+
+	result , err := redis.Client.Get(fmt.Sprintf("%s,token", uuid)).Result()
+	if err != nil {
+		return false, err
+	}
+	if result != token {
+		return false, nil
+	}
+	return true, nil
 }

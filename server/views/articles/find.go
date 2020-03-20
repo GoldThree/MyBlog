@@ -13,8 +13,10 @@ import (
 
 // FindArticlesRequest 请求参数
 type FindArticlesRequest struct {
-	Offset int `json:"offset"`
-	Limit  int `json:"limit"`
+	Uuid   string `json:"uuid"`
+	Token  string `json:"token"`
+	Offset int    `json:"offset"`
+	Limit  int    `json:"limit"`
 }
 
 // FindArticlesResponse 返回参数
@@ -38,7 +40,7 @@ func Find(c *gin.Context) {
 		return
 	}
 
-	articles, err := server.Find(request.Offset, request.Limit)
+	articles, err := server.Find(request.Offset, request.Limit, request.Uuid, request.Token)
 	if err != nil {
 		c.JSON(200, e.MakeErrorResponse(err))
 		return
@@ -51,6 +53,12 @@ func Find(c *gin.Context) {
 // ValidateRequestParams 参数检查
 func (g *FindArticlesRequest) ValidateRequestParams() error {
 
+	if g.Uuid == "" {
+		return errors.New("invalid_param.uuid")
+	}
+	if g.Token == "" {
+		return errors.New("invalid_param.token")
+	}
 	if g.Offset < 0 {
 		return errors.New("invalid_param.offset")
 	}
@@ -63,6 +71,7 @@ func (g *FindArticlesRequest) ValidateRequestParams() error {
 // FindUserArticlesRequest 请求参数
 type FindUserArticlesRequest struct {
 	Uuid   string `json:"uuid"`
+	Token  string `json:"token"`
 	Offset int    `json:"offset"`
 	Limit  int    `json:"limit"`
 }
@@ -88,7 +97,7 @@ func FindByUuid(c *gin.Context) {
 		return
 	}
 
-	articles, err := server.FindByUuid(request.Uuid, request.Offset, request.Limit)
+	articles, err := server.FindByUuid(request.Uuid, request.Token, request.Offset, request.Limit)
 	if err != nil {
 		c.JSON(200, e.MakeErrorResponse(err))
 		return
@@ -103,6 +112,9 @@ func (g *FindUserArticlesRequest) ValidateRequestParams() error {
 
 	if g.Uuid == "" {
 		return errors.New("invalid_param.uuid")
+	}
+	if g.Token == "" {
+		return errors.New("invalid_param.token")
 	}
 	if g.Offset < 0 {
 		return errors.New("invalid_param.offset")

@@ -2,7 +2,6 @@
 package users
 
 import (
-	errors2 "MyBlog/server/views/errors"
 	"errors"
 	"fmt"
 
@@ -10,6 +9,7 @@ import (
 	"github.com/gin-gonic/gin/binding"
 
 	"MyBlog/server/server"
+	e "MyBlog/server/views/errors"
 )
 
 // LoginRequest 请求参数
@@ -20,7 +20,8 @@ type LoginRequest struct {
 
 // Response 返回参数
 type LoginResponse struct {
-	Ok bool `json:"ok"`
+	Token string `json:"token"`
+	Ok    bool   `json:"ok"`
 }
 
 // PostHandle 处理请求函数
@@ -29,24 +30,24 @@ func Login(c *gin.Context) {
 	request := &LoginRequest{}
 	err := binding.JSON.Bind(c.Request, request)
 	if err != nil {
-		c.JSON(200, errors2.MakeErrorResponse(err))
+		c.JSON(200, e.MakeErrorResponse(err))
 		return
 	}
 
 	err = request.ValidateRequestParams()
 	if err != nil {
-		c.JSON(200, errors2.MakeErrorResponse(err))
+		c.JSON(200, e.MakeErrorResponse(err))
 		return
 	}
 
-	err = server.Login(request.Phone, request.Password)
+	token, err := server.Login(request.Phone, request.Password)
 	if err != nil {
 		fmt.Println("出错了", err)
 		c.JSON(200, Response{Ok: false})
 		return
 	}
 
-	c.JSON(200, Response{Ok: true})
+	c.JSON(200, LoginResponse{Ok: true, Token: token})
 
 }
 
